@@ -1,12 +1,9 @@
 {
   "version": 2,
-  "functions": {
-    "api/fetch.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "builds": [
+    { "src": "api/fetch.py", "use": "@vercel/python" }
+  ],
   "routes": [
-    { "src": "/api/fetch", "dest": "api/fetch.js" },
-    { "src": "/fetch", "dest": "api/fetch.js" }
+    { "src": "/(.*)", "dest": "api/fetch.py" }
   ]
 }
