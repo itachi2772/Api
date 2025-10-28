@@ -1,42 +1,50 @@
-export default async function handler(req, res) {
-  const { aadhaar, key } = req.query;
+import requests
+from flask import Flask, request, jsonify
 
-  // 🟢 If no Aadhaar given → show usage info
-  if (!aadhaar) {
-    return res.status(200).json({
-      message: "🟢 Aadhaar Family Info API by @Mr_Itachi007",
-      usage: "/fetch?aadhaar=YOUR_AADHAAR_NUMBER&key=itachi007"
-    });
-  }
+app = Flask(__name__)
 
-  // 🛡️ Key check
-  if (key !== "itachi007") {
-    return res.status(403).json({
-      error: "❌ Invalid API key",
-      note: "Use key=itachi007 to access this API"
-    });
-  }
+# Apni API key (jo users use karenge)
+MY_API_KEY = "itachi007"
 
-  try {
-    // 🔹 Your main source API (with real working key)
-    const sourceApi = `https://family-members-n5um.vercel.app/fetch?aadhaar=${aadhaar}&key=paidchx`;
+# Source API (jahan se tu data scrape karega)
+SOURCE_API = "https://family-members-n5um.vercel.app/fetch"
 
-    // 🔹 Fetch from original API
-    const response = await fetch(sourceApi);
-    const data = await response.json();
+# Source API key (yahan original API ki key dale)
+SOURCE_KEY = "paidchx"
 
-    // 🔹 Send response with credit
-    return res.status(200).json({
-      developer: "@Mr_Itachi007",
-      source: "family-members-n5um.vercel.app",
-      result: data,
-      credit: "by @Mr_Itachi007"
-    });
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "message": "🟢 Aadhaar Family Info API by @Mr_Itachi007",
+        "usage": "/fetch?aadhaar=YOUR_AADHAAR_NUMBER&key=itachi007"
+    })
 
-  } catch (error) {
-    return res.status(500).json({
-      error: "⚠️ Failed to fetch data",
-      details: error.message
-    });
-  }
-}
+@app.route("/fetch", methods=["GET"])
+def fetch_info():
+    aadhaar = request.args.get("aadhaar")
+    key = request.args.get("key")
+
+    if not aadhaar:
+        return jsonify({"error": "❌ Aadhaar number required"}), 400
+
+    if key != MY_API_KEY:
+        return jsonify({"error": "❌ Invalid API key"}), 403
+
+    try:
+        # Call original API (with required key)
+        url = f"{SOURCE_API}?aadhaar={aadhaar}&key={SOURCE_KEY}"
+        response = requests.get(url, timeout=10)
+        data = response.json()
+
+        # Add credit tag
+        data["credit"] = "🟢 Powered by @Mr_Itachi007"
+
+        return jsonify(data)
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# Vercel entry point
+if __name__ == "__main__":
+    app.run()
